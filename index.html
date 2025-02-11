@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anywhere on Earth Time</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/luxon/3.4.4/luxon.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
+    <style>
+        .digital-display {
+            background: #000;
+            border: 3px solid #333;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        
+        .date-display {
+            color: #41ff41;
+            text-shadow: 0 0 10px #41ff41;
+        }
+
+        .time-display {
+            color: #ff4141;
+            text-shadow: 0 0 10px #ff4141;
+        }
+        
+        .digit-background-date {
+            background-color: rgba(65, 255, 65, 0.1);
+            border-radius: 5px;
+            padding: 10px 5px;
+            margin: 0 2px;
+            display: inline-block;
+        }
+
+        .digit-background-time {
+            background-color: rgba(255, 65, 65, 0.1);
+            border-radius: 5px;
+            padding: 10px 5px;
+            margin: 0 2px;
+            display: inline-block;
+        }
+
+        @media (max-width: 640px) {
+            .time-display {
+                font-size: 3rem !important;
+            }
+            .date-display {
+                font-size: 1.5rem !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-black min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <header class="text-center mb-8">
+            <h1 class="text-5xl font-bold text-green-400 mb-2">Orario AoE</h1>
+            <p class="text-xl text-green-500">Anywhere on Earth (UTC-12:00)</p>
+        </header>
+
+        <main class="max-w-4xl mx-auto">
+            <!-- Display digitale -->
+            <div class="digital-display mb-12">
+                <div id="human-date" class="text-4xl text-center mb-4 date-display"></div>
+                <div id="human-time" class="text-9xl text-center font-bold time-display tracking-wider"></div>
+            </div>
+
+            <!-- Link al formato raw -->
+            <div class="bg-green-900 bg-opacity-30 rounded-lg p-6 mb-12 text-center">
+                <p class="text-lg text-green-400 mb-2" id="raw-text">
+                    Formato raw disponibile all'indirizzo: 
+                    <a href="/raw" class="text-green-300 hover:text-green-200 underline font-mono">/raw</a>
+                </p>
+            </div>
+
+            <!-- Spiegazione AoE -->
+            <div class="bg-green-900 bg-opacity-20 rounded-lg shadow-lg p-8">
+                <h2 class="text-2xl font-semibold text-green-400 mb-4" id="about-title">Cos'è l'orario AoE?</h2>
+                <div class="prose text-green-300 text-lg leading-relaxed">
+                    <p class="mb-4" id="about-p1">
+                        L'orario "Anywhere on Earth" (AoE) rappresenta l'ultimo momento possibile di un giorno sul nostro pianeta. 
+                        Corrisponde al fuso orario UTC-12:00, quello delle isole Baker e Howland nel Pacifico.
+                    </p>
+                    <p id="about-p2">
+                        È spesso utilizzato come riferimento per scadenze internazionali: quando si dice che una scadenza è "alle 23:59 AoE", 
+                        significa che il termine è valido finché non passa la mezzanotte nell'ultimo posto della Terra dove il giorno sta finendo.
+                    </p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Detect browser language
+        const userLang = navigator.language || navigator.userLanguage;
+        const isItalian = userLang.startsWith('it');
+
+        // Translations
+        const translations = {
+            it: {
+                title: "Cos'è l'orario AoE?",
+                raw: "Formato raw disponibile all'indirizzo:",
+                about1: "L'orario \"Anywhere on Earth\" (AoE) rappresenta l'ultimo momento possibile di un giorno sul nostro pianeta. Corrisponde al fuso orario UTC-12:00, quello delle isole Baker e Howland nel Pacifico.",
+                about2: "È spesso utilizzato come riferimento per scadenze internazionali: quando si dice che una scadenza è \"alle 23:59 AoE\", significa che il termine è valido finché non passa la mezzanotte nell'ultimo posto della Terra dove il giorno sta finendo."
+            },
+            en: {
+                title: "What is AoE time?",
+                raw: "Raw format available at:",
+                about1: "\"Anywhere on Earth\" (AoE) time represents the last possible moment of a day on our planet. It corresponds to the UTC-12:00 timezone, used in Baker and Howland Islands in the Pacific.",
+                about2: "It's commonly used for international deadlines: when a deadline is set to \"23:59 AoE\", it means the deadline is valid until midnight in the last place on Earth where the day is ending."
+            }
+        };
+
+        // Apply translations
+        const lang = isItalian ? 'it' : 'en';
+        document.getElementById('about-title').textContent = translations[lang].title;
+        document.getElementById('raw-text').innerHTML = `${translations[lang].raw} <a href="/raw" class="text-green-300 hover:text-green-200 underline font-mono">/raw</a>`;
+        document.getElementById('about-p1').textContent = translations[lang].about1;
+        document.getElementById('about-p2').textContent = translations[lang].about2;
+
+        function addDigitBackground(text, isDate) {
+            const className = isDate ? 'digit-background-date' : 'digit-background-time';
+            return text.split('').map(char => 
+                char === ' ' ? ' ' : `<span class="${className}">${char}</span>`
+            ).join('');
+        }
+
+        function updateTime() {
+            const { DateTime } = luxon;
+            const aoeTime = DateTime.now().setZone('Etc/GMT+12');
+            
+            // Update date with correct language format
+            const date = aoeTime.toFormat('EEEE d MMMM yyyy', { locale: lang });
+            document.getElementById('human-date').innerHTML = addDigitBackground(date, true);
+            
+            // Update time
+            const time = aoeTime.toFormat('HH:mm:ss');
+            document.getElementById('human-time').innerHTML = addDigitBackground(time, false);
+        }
+
+        // Update time immediately and then every second
+        updateTime();
+        setInterval(updateTime, 1000);
+    </script>
+</body>
+</html>
