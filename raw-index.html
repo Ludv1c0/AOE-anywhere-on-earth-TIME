@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AoE Time - Raw Format</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/luxon/3.4.4/luxon.min.js"></script>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            margin: 0;
+            background: #1a1a1a;
+            color: #ffffff;
+        }
+        #raw-time {
+            white-space: pre;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div id="raw-time"></div>
+
+    <script>
+        function updateTime() {
+            const { DateTime } = luxon;
+            const aoeTime = DateTime.now().setZone('Etc/GMT+12');
+            
+            // Formato raw con data ISO e informazioni aggiuntive
+            const rawOutput = {
+                iso: aoeTime.toISO(),
+                timestamp: aoeTime.toMillis(),
+                timezone: "UTC-12:00 (AoE)",
+                date: aoeTime.toFormat('yyyy-MM-dd'),
+                time: aoeTime.toFormat('HH:mm:ss')
+            };
+            
+            document.getElementById('raw-time').textContent = JSON.stringify(rawOutput, null, 2);
+        }
+
+        // Aggiorna ogni secondo
+        updateTime();
+        setInterval(updateTime, 1000);
+    </script>
+</body>
+</html>
